@@ -7,78 +7,94 @@ st.set_page_config(
     layout="centered"
 )
 
-st.markdown("<h1 style='text-align:center;'>🚦 CongestiQ</h1>", unsafe_allow_html=True)
+# ---------------- HEADER ----------------
 st.markdown(
-    "<p style='text-align:center;'>Smart Traffic Congestion & Risk Analysis System</p>",
+    "<h1 style='text-align:center;'>🚦 CongestiQ</h1>",
     unsafe_allow_html=True
+)
+st.markdown(
+    "<p style='text-align:center;'>Traffic Congestion & Risk Intelligence System for Smart Cities</p>",
+    unsafe_allow_html=True
+)
+
+st.info(
+    "CongestiQ evaluates traffic congestion by combining traffic load, weather hazards, "
+    "road conditions, safety compliance, and environmental stress into a single explainable score."
 )
 
 st.divider()
 
-# ---------------- INPUT SECTIONS ----------------
+# ---------------- INPUTS ----------------
+st.subheader("📥 Input Conditions")
 
-st.subheader("🚗 Traffic Conditions")
-col1, col2 = st.columns(2)
+tab1, tab2, tab3 = st.tabs(["🚗 Traffic", "🌦️ Weather", "🛑 Safety & Environment"])
 
-with col1:
-    traffic_density = st.slider("Traffic Density (%)", 0, 100, 50)
-    avg_speed = st.slider("Average Speed (km/h)", 0, 120, 40)
-    peak_hour = st.selectbox("Peak Hour", ["No", "Yes"])
+# -------- TRAFFIC TAB --------
+with tab1:
+    col1, col2 = st.columns(2)
 
-with col2:
-    construction = st.selectbox("Road Construction", ["No", "Yes"])
-    accident = st.selectbox("Recent Accident", ["No", "Yes"])
-    lane_closure = st.selectbox("Lane Closure", ["No", "Yes"])
+    with col1:
+        traffic_density = st.slider("Traffic Density (%)", 0, 100, 50)
+        avg_speed = st.slider("Average Speed (km/h)", 0, 120, 40)
+        peak_hour = st.selectbox("Peak Hour", ["No", "Yes"])
 
-st.subheader("🌦️ Weather & Climate Factors")
-col3, col4 = st.columns(2)
+    with col2:
+        construction = st.selectbox("Road Construction", ["No", "Yes"])
+        accident = st.selectbox("Recent Accident", ["No", "Yes"])
+        lane_closure = st.selectbox("Lane Closure", ["No", "Yes"])
 
-with col3:
-    weather = st.selectbox(
-        "Weather Condition",
-        ["Clear", "Rain", "Fog", "Storm", "Extreme Heat", "Flooding"]
-    )
-    visibility = st.slider("Visibility (meters)", 50, 1000, 500)
+# -------- WEATHER TAB --------
+with tab2:
+    col3, col4 = st.columns(2)
 
-with col4:
-    temperature = st.slider("Temperature (°C)", 0, 50, 30)
-    humidity = st.slider("Humidity (%)", 0, 100, 60)
+    with col3:
+        weather = st.selectbox(
+            "Weather Condition",
+            ["Clear", "Rain", "Fog", "Storm", "Extreme Heat", "Flooding"]
+        )
+        visibility = st.slider("Visibility (meters)", 50, 1000, 500)
 
-st.subheader("🛑 Safety & Human Factors")
-col5, col6 = st.columns(2)
+    with col4:
+        temperature = st.slider("Temperature (°C)", 0, 50, 30)
+        humidity = st.slider("Humidity (%)", 0, 100, 60)
 
-with col5:
-    helmet_usage = st.slider("Helmet Usage (%)", 0, 100, 70)
-    seatbelt_usage = st.slider("Seatbelt Usage (%)", 0, 100, 80)
+# -------- SAFETY TAB --------
+with tab3:
+    col5, col6 = st.columns(2)
 
-with col6:
-    speeding = st.selectbox("Speeding Observed", ["No", "Yes"])
-    night_time = st.selectbox("Time of Day", ["Day", "Night"])
+    with col5:
+        helmet_usage = st.slider("Helmet Usage (%)", 0, 100, 70)
+        seatbelt_usage = st.slider("Seatbelt Usage (%)", 0, 100, 80)
 
-st.subheader("🌍 Environmental Stress")
-aqi = st.slider("Air Quality Index (AQI)", 0, 500, 120)
+    with col6:
+        speeding = st.selectbox("Speeding Observed", ["No", "Yes"])
+        time_of_day = st.selectbox("Time of Day", ["Day", "Night"])
+        aqi = st.slider("Air Quality Index (AQI)", 0, 500, 120)
 
 st.divider()
 
-# ---------------- LOGIC ENGINE ----------------
+# ---------------- RISK ENGINE ----------------
 
-risk_score = 0
+traffic_risk = 0
+weather_risk = 0
+safety_risk = 0
+environment_risk = 0
 
-# Traffic influence
-risk_score += traffic_density * 0.35
-risk_score += max(0, (60 - avg_speed)) * 0.4
+# ---- Traffic Risk ----
+traffic_risk += traffic_density * 0.4
+traffic_risk += max(0, 60 - avg_speed) * 0.35
 
 if peak_hour == "Yes":
-    risk_score += 10
+    traffic_risk += 10
 if construction == "Yes":
-    risk_score += 15
+    traffic_risk += 15
 if accident == "Yes":
-    risk_score += 20
+    traffic_risk += 20
 if lane_closure == "Yes":
-    risk_score += 10
+    traffic_risk += 10
 
-# Weather influence
-weather_risk = {
+# ---- Weather Risk ----
+weather_scores = {
     "Clear": 0,
     "Rain": 12,
     "Fog": 18,
@@ -86,71 +102,74 @@ weather_risk = {
     "Extreme Heat": 10,
     "Flooding": 30
 }
-risk_score += weather_risk[weather]
+weather_risk += weather_scores[weather]
 
 if visibility < 300:
-    risk_score += 12
+    weather_risk += 12
+if temperature > 40:
+    weather_risk += 8
+if humidity > 80:
+    weather_risk += 6
 
-# Safety influence
-risk_score += (100 - helmet_usage) * 0.2
-risk_score += (100 - seatbelt_usage) * 0.15
+# ---- Safety Risk ----
+safety_risk += (100 - helmet_usage) * 0.25
+safety_risk += (100 - seatbelt_usage) * 0.2
 
 if speeding == "Yes":
-    risk_score += 15
-if night_time == "Night":
-    risk_score += 8
+    safety_risk += 15
+if time_of_day == "Night":
+    safety_risk += 8
 
-# Environmental stress
-if temperature > 40:
-    risk_score += 10
-if humidity > 80:
-    risk_score += 6
+# ---- Environmental Risk ----
 if aqi > 200:
-    risk_score += 10
+    environment_risk += 12
 
-# ---------------- FINAL CONGESTION CALCULATION ----------------
+# ---- Total Risk ----
+total_risk = traffic_risk + weather_risk + safety_risk + environment_risk
 
-# Normalize to 0–100%
-congestion_percentage = min(100, int((risk_score / 150) * 100))
+# Normalize to congestion %
+congestion_percentage = min(100, int((total_risk / 160) * 100))
 
 # ---------------- OUTPUT ----------------
+st.subheader("📊 Congestion Assessment")
 
-st.subheader("📊 Final Analysis")
-
-st.metric(
-    label="Traffic Congestion Level",
-    value=f"{congestion_percentage} %"
-)
-
+st.metric("Traffic Congestion Level", f"{congestion_percentage}%")
 st.progress(congestion_percentage / 100)
 
 if congestion_percentage < 35:
-    st.success("🟢 Low Congestion & Risk")
-    status = "Traffic is flowing smoothly with minimal risk."
+    st.success("🟢 Low Congestion")
+    summary = "Traffic flow is stable with minimal disruption."
 elif congestion_percentage < 65:
-    st.warning("🟡 Moderate Congestion & Risk")
-    status = "Traffic buildup detected. Caution advised."
+    st.warning("🟡 Moderate Congestion")
+    summary = "Traffic buildup detected. Preventive measures recommended."
 else:
-    st.error("🔴 High Congestion & Risk")
-    status = "Severe congestion and high accident probability."
+    st.error("🔴 High Congestion")
+    summary = "Severe congestion with high accident probability."
 
-st.markdown(f"**System Insight:** {status}")
+st.markdown(f"**System Insight:** {summary}")
 
+# ---------------- BREAKDOWN ----------------
+st.subheader("🔍 Risk Contribution Breakdown")
+
+st.write(f"🚗 Traffic Factors: **{int(traffic_risk)}**")
+st.write(f"🌦️ Weather Factors: **{int(weather_risk)}**")
+st.write(f"🛑 Safety Factors: **{int(safety_risk)}**")
+st.write(f"🌍 Environmental Factors: **{int(environment_risk)}**")
+
+# ---------------- ACTIONS ----------------
 st.subheader("🧠 Recommended Actions")
 
 if congestion_percentage >= 65:
-    st.write("• Reroute traffic immediately")
-    st.write("• Deploy traffic police")
-    st.write("• Issue public safety alerts")
+    st.write("• Activate traffic diversion plans")
+    st.write("• Deploy traffic police & emergency teams")
+    st.write("• Issue public travel advisories")
 elif congestion_percentage >= 35:
-    st.write("• Monitor traffic closely")
-    st.write("• Reduce speed limits")
-    st.write("• Alert commuters")
+    st.write("• Monitor congestion-prone zones")
+    st.write("• Adjust signal timings")
+    st.write("• Inform commuters in advance")
 else:
     st.write("• Normal traffic operations")
-    st.write("• No immediate intervention needed")
+    st.write("• Continue passive monitoring")
 
 st.divider()
-st.caption("CongestiQ | Smart Cities • Road Safety • Real-Time Inspired MVP")
-
-
+st.caption("CongestiQ | Explainable Traffic Intelligence for Smart Cities")
