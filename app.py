@@ -8,7 +8,8 @@ st.set_page_config(
     layout="centered"
 )
 
-API_KEY = "PASTE_YOUR_OPENWEATHER_API_KEY_HERE"
+API_KEY = st.secrets["OPENWEATHER_API_KEY"]
+
 
 # ---------------- HEADER ----------------
 st.markdown("<h1 style='text-align:center;'>🚦 CongestiQ AI</h1>", unsafe_allow_html=True)
